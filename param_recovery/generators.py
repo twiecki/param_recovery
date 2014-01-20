@@ -5,7 +5,7 @@ import pandas as pd
 
 from .utils import concat_dicts, make_hash
 
-def gen_estimators(pipeline, exp_dict, estimators=None):
+def estimator(pipeline, exp_dict, estimators=None):
     exp = {}
     gen, kwargs = pipeline.popleft()
     for estimator in estimators:
@@ -19,7 +19,7 @@ def gen_estimators(pipeline, exp_dict, estimators=None):
     yield exp
 
 
-def gen_repl(pipeline, exp_dict, n=10):
+def replicator(pipeline, exp_dict, n=10):
     exp = {}
     gen, kwargs = pipeline.popleft()
 
@@ -32,7 +32,7 @@ def gen_repl(pipeline, exp_dict, n=10):
     yield exp
 
 
-def gen_params(pipeline, exp_dict, evals=5):
+def param_wise_equal_spacing(pipeline, exp_dict, evals=5):
     gen, kwargs = pipeline.popleft()
     exp = {}
     est = exp_dict['estimator']

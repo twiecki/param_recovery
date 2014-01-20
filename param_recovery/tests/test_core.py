@@ -37,9 +37,9 @@ class Test(unittest.TestCase):
     def test_pipeline(self):
         evals = 5
         n = 3
-	pipeline = [(generators.gen_estimators, {'estimators': [TestEstimator]}),
-                    (generators.gen_params, {'evals': evals}),
-                    (generators.gen_repl, {'n': n}),
+	pipeline = [(generators.estimator, {'estimators': [TestEstimator]}),
+                    (generators.param_wise_equal_spacing, {'evals': evals}),
+                    (generators.replicator, {'n': n}),
                     (gather, {}),
                    ]
 

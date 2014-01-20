@@ -31,10 +31,14 @@ class TestEstimator(object):
         # Estimate your model and return fitted parameters
         return params
 
-pipeline = [(generators.estimator, {'estimators': [TestEstimator]}), # run one estimator
-            (generators.single_param_eval, {'evals': 20}), # Evaluate every parameter over a range spanning 20 values
-            (generators.replicate, {'n': 10}), # Run every recovery 10 times with different seeds
-            (call_exp, {'view': None}), # Actually run the recovery, view can be an IPython parallel view
+pipeline = [# run one estimator
+	    (generators.estimator, {'estimators': [TestEstimator]}),
+	    # Evaluate every parameter over a range spanning 20 values
+            (generators.param_wise_equal_spacing, {'evals': 20}),
+	    # Run every recovery 10 times with different seeds
+            (generators.replicator, {'n': 10}),
+	    # Actually run the recovery, view can be an IPython parallel view
+            (call_exp, {'view': None}),
            ]
 
 experiment = {'estimator': [TestEstimator],

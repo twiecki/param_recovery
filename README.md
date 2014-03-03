@@ -38,11 +38,10 @@ pipeline = [# run one estimator
 	    # Run every recovery 10 times with different seeds
             (generators.replicator, {'n': 10}),
 	    # Actually run the recovery, view can be an IPython parallel view
-            (call_exp, {'view': None}),
+            (generators.call_exp, {'view': None}),
            ]
 
-experiment = {'estimator': [TestEstimator],
-              'gen_data_params': {'size': 100, 'seed': 123},
+experiment = {'gen_data_params': {'size': 100, 'seed': 123},
               'estimate_params': {'method': 'Nelder-Mead'}
               }
 

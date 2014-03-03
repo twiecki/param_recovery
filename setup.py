@@ -8,4 +8,5 @@ setup(name='param_recovery',
       author='Thomas Wiecki',
       author_email='thomas.wiecki@gmail.com',
       url='https://github.com/twiecki/param_recovery',
+      packages=['param_recovery']
      )

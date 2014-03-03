@@ -1,7 +1,8 @@
 import os
 import pandas as pd
-from copy import deepcopy
+from copy import copy, deepcopy
 from collections import deque
+from IPython.parallel.client.asyncresult import AsyncResult
 
 def make_hash(o):
     """
@@ -23,7 +24,7 @@ def make_hash(o):
 def concat_dicts(d, names=()):
     name = names.pop(0) if len(names) != 0 else None
 
-    if isinstance(d, pd.DataFrame):
+    if isinstance(d, (pd.DataFrame, pd.Series)):
         return d # End recursion
     elif isinstance(d, AsyncResult):
         return d.get()
@@ -37,4 +38,4 @@ def concat_dicts(d, names=()):
 def run_pipeline(pipeline, exp_dict):
     pipeline = deque(pipeline)
     gen, kwargs = pipeline.popleft()
-    return gen(deepcopy(pipeline), exp_dict, **kwargs).next()
+    return concat_dicts(gen(deepcopy(pipeline), exp_dict, **kwargs).next())

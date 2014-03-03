@@ -41,7 +41,7 @@ def param_wise_equal_spacing(pipeline, exp_dict, evals=5):
     for param_name, param_range in param_ranges.iteritems():
         params = deepcopy(base_params)
         exp[param_name] = {}
-        for val in np.linspace(param_range[0], param_range[1], evals):
+        for val in np.linspace(param_range[0], param_range[1], evals)[1:]:
             exp[param_name][val] = deepcopy(exp_dict)
             params[param_name] = val
             exp[param_name][val]['gen_data_params']['params'] = params
@@ -52,7 +52,8 @@ def param_wise_equal_spacing(pipeline, exp_dict, evals=5):
         yield exp
 
 
-def call_exp(pipeline, exp_dict, view=None, **kwargs):
+def call_exp(pipeline, exp_dict, view=None, backup=False, **kwargs):
+    run_exp = run_backed_up if backup else run_simple
     if view is None:
         recovered = run_exp(exp_dict, **kwargs)
     else:
@@ -62,7 +63,17 @@ def call_exp(pipeline, exp_dict, view=None, **kwargs):
     raise StopIteration
 
 
-def run_exp(exp_dict, folder='sims', action='collect'):
+def run_simple(exp_dict):
+    import os
+    import pandas as pd
+    import numpy as np
+    est = exp_dict['estimator']()
+    data = est.gen_data(**exp_dict['gen_data_params'])
+    recovered = est.estimate(data, **exp_dict['estimate_params'])
+    return recovered
+
+
+def run_backed_up(exp_dict, folder='sims', action='collect'):
     import os
     import pandas as pd
     import numpy as np
@@ -98,6 +109,6 @@ def run_exp(exp_dict, folder='sims', action='collect'):
             recovered = est.estimate(data, **exp_dict['estimate_params'])
             recovered.to_pickle(fname)
         except:
-            return np.nan
+            return pd.DataFrame()
 
         return recovered

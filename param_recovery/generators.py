@@ -5,16 +5,16 @@ import pandas as pd
 
 from .utils import concat_dicts, make_hash
 
+from param_recovery import get_view, get_model
+
 def estimator(pipeline, exp_dict, estimators=None):
     exp = {}
     gen, kwargs = pipeline.popleft()
     for estimator in estimators:
-        name = estimator.__name__
-        exp[name] = deepcopy(exp_dict)
-        exp[name]['estimator'] = estimator
-
-        for e in gen(deepcopy(pipeline), exp[name], **kwargs):
-            exp[name] = e
+        exp[estimator] = deepcopy(exp_dict)
+        exp[estimator]['estimator'] = estimator
+        for e in gen(deepcopy(pipeline), exp[estimator], **kwargs):
+            exp[estimator] = e
 
     yield exp
 
@@ -35,7 +35,7 @@ def replicator(pipeline, exp_dict, n=10):
 def param_wise_equal_spacing(pipeline, exp_dict, evals=5):
     gen, kwargs = pipeline.popleft()
     exp = {}
-    est = exp_dict['estimator']
+    est = get_model(exp_dict['estimator'])
     param_ranges = est.param_ranges
     base_params = {k: (v[1] - v[0])/2. for k, v in param_ranges.iteritems()}
     for param_name, param_range in param_ranges.iteritems():
@@ -52,11 +52,14 @@ def param_wise_equal_spacing(pipeline, exp_dict, evals=5):
         yield exp
 
 
-def call_exp(pipeline, exp_dict, view=None, backup=False, **kwargs):
+def call_exp(pipeline, exp_dict, parallel=False, backup=False, **kwargs):
     run_exp = run_backed_up if backup else run_simple
-    if view is None:
+    if not parallel:
         recovered = run_exp(exp_dict, **kwargs)
     else:
+        view = get_view()
+        if view is None:
+            raise AttributeError('view not set. Call param_recovery.set_view(view) before.')
         recovered = view.apply_async(run_exp, exp_dict, **kwargs)
 
     yield recovered
@@ -67,7 +70,9 @@ def run_simple(exp_dict):
     import os
     import pandas as pd
     import numpy as np
-    est = exp_dict['estimator']()
+    from param_recovery import get_model
+
+    est = get_model(exp_dict['estimator'])()
     data = est.gen_data(**exp_dict['gen_data_params'])
     recovered = est.estimate(data, **exp_dict['estimate_params'])
     return recovered
@@ -77,6 +82,7 @@ def run_backed_up(exp_dict, folder='sims', action='collect'):
     import os
     import pandas as pd
     import numpy as np
+    from param_recovery import get_model
 
     h = make_hash(exp_dict)
 
@@ -102,7 +108,7 @@ def run_backed_up(exp_dict, folder='sims', action='collect'):
         #working on this job
         pd.DataFrame().to_pickle(fname)
 
-        est = exp_dict['estimator']()
+        est = get_model(exp_dict['estimator'])()
         data = est.gen_data(**exp_dict['gen_data_params'])
 
         try:

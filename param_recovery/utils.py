@@ -4,6 +4,8 @@ from copy import copy, deepcopy
 from collections import deque
 from IPython.parallel.client.asyncresult import AsyncResult
 
+import param_recovery
+
 def make_hash(o):
     """
     Makes a hash from a dictionary, list, tuple or set to any level, that contains
